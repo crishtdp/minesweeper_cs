@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minesweeper</title>
+
+    <style>
+
+        p {
+            font-family: "Arial";
+        }
+
+        .textalignleft{
+            text-align: left;
+        }
+
+        .textalignright{
+            text-align: right;
+        } 
+
+        .textaligncenter{
+            text-align: center;
+        }          
+
+        body{
+            overflow: hidden;
+            background-color: rgb(192, 192, 192);
+        }
+
+        #gamescreen{
+            width:99vw;
+            height:94vh;
+
+            background-color: rgb(192, 192, 192);
+        }
+
+        #gametable{
+            border: 2.5px solid rgb(99, 99, 99);
+            border-collapse: collapse;
+
+            width:100%;
+            height: 100%;
+        }
+
+        .counter{
+            background-color: black;
+            width: 10%;
+        }
+
+        .emptyspacelrg{
+            width: 40%;
+        }
+
+        .emptyspacesml{
+            width: 2.5%;
+        }
+
+        #minesweeper td{
+            border: 2.5px solid rgb(17, 17, 17);
+            width: 5.1vw;
+            height: 4.8vw;
+        }
+
+        button{
+            width: 100%;
+            height: 100%;
+
+            font-size: 2vw;
+
+        }
+
+        .counter{
+            color: white;
+            font-size: 1vw;
+
+            height: 1.5vw;
+        }
+
+        .unactivated{
+            background-color: rgb(158, 158, 158);
+        }
+
+        .activated{
+            background-color: rgba(222, 222, 222, 1);
+        }
+
+        .gameover{
+            background-color: rgb(186, 0, 0);
+        }
+
+        .goodjob{
+            background-color: rgb(0, 186, 62);
+        }
+
+        .layerdisable{
+            z-index: -1000;
+            display: none;
+        }
+        .diffbutton{
+
+            width: 25%;
+            height: 10%;
+            background-color: rgb(217, 217, 217);
+            font-size: 2vw;
+        }
+
+        #hide3{
+            font-size: 0.5vw;
+        }
+
+        #hide4{
+            font-size: 2vw;
+        }
+
+        #hide5{
+            font-size: 0.5vw;
+        }
+
+        #hide7{
+            font-size: 0.5vw;
+        }
+
+        #hide9{
+            font-size: 0.5vw;
+        }
+
+        #hide11{
+            font-size: 0.5vw;
+        }
+
+        #hide12{
+            font-size: 1.5vw;
+        }
+
+        #timer{
+            
+            font-family: "Arial";
+            font-size: 2vw;
+        }
+
+
+    </style>
+
+    <script>
+
+        time=0
+
+        timerstart = 0
+
+        gameWon = false;
+
+        gameDiff = 2;
+
+        activatedtile = 0;
+
+        ctrlPressed = false;
+
+        gamestate = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]];
+
+        neighbors = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]];
+
+        bombs = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]];
+
+        console.log(bombs)
+
+        gameStarted = false;
+
+        function getRandomInt(min, max) {
+            min = Math.floor(min)
+            max = Math.floor(max)
+
+            return Math.floor(Math.random() * ((max+1)-min))+min;
+        }
+
+
+        function spawnBombs(ix, iy){
+            
+            bombsDone = 0;
+
+            while(bombsDone < 21*gameDiff){
+                newX =getRandomInt(0, 17)
+                newY =getRandomInt(0, 6)
+
+                if(!(newX-1 == ix && newY-1 == iy) && !(newX == ix && newY-1 == iy) && !(newX+1 == ix && newY-1 == iy)
+                && !(newX-1 == ix && newY == iy) &&   !(newX == ix && newY == iy) &&     !(newX+1 == ix && newY == iy)
+                && !(newX-1 == ix && newY+1 == iy) && !(newX == ix && newY+1 == iy) && !(newX+1 == ix && newY+1 == iy)){
+                    if(bombs[newX][newY] == 0){
+                        bombsDone += 1;
+                        bombs[newX][newY] = 1;
+                    }
+                }
+            }
+
+            console.log(bombs)
+
+            for (let x = 0; x <= 17; x++) {
+                for (let y = 0; y <= 6; y++) {
+                    
+                    foundbombs = 0
+
+                    if(x>0 && y>0){
+                        if(bombs[x-1][y-1] == 1){
+                            foundbombs++
+                        }
+                    }
+
+                    if(y>0){
+                        if(bombs[x][y-1] == 1){
+                            foundbombs++
+                        }
+                    }
+
+                    if(x<17&&y>0){
+                        if(bombs[x+1][y-1] == 1){
+                            foundbombs++
+                        }
+                    }
+///////////////////////////////////////////////////////////////////////////////////
+
+                    if(x>0){
+                        if(bombs[x-1][y] == 1){
+                            foundbombs++
+                        }
+                    }
+
+
+                    ////
+
+                    if(x<17){
+                        if(bombs[x+1][y] == 1){
+                            foundbombs++
+                        }
+                    }
+
+///////////////////////////////////////////////////////////////////////////////////
+
+                    if(x>0 && y<6){
+                        if(bombs[x-1][y+1] == 1){
+                            foundbombs++
+                        }
+                    }
+
+                    if(y<6){
+                        if(bombs[x][y+1] == 1){
+                            foundbombs++
+                        }
+                    }
+
+                    if(x<17&&y<6){
+                        if(bombs[x+1][y+1] == 1){
+                            foundbombs++
+                        }
+                    }
+
+                    neighbors[x][y] = foundbombs;
+
+                }
+            }
+
+            console.log(neighbors)
+        }
+
+        function difficulty(diffacjaw){
+            newdiff = Number(diffacjaw)
+
+            gameDiff = newdiff
+
+            document.getElementById("hide1").className = "layerdisable"
+            document.getElementById("hide2").className = "layerdisable"
+            document.getElementById("hide3").className = "layerdisable"
+            document.getElementById("hide4").className = "layerdisable"
+            document.getElementById("hide5").className = "layerdisable"
+            document.getElementById("hide6").className = "layerdisable"
+            document.getElementById("hide7").className = "layerdisable"
+            document.getElementById("hide8").className = "layerdisable"
+            document.getElementById("hide9").className = "layerdisable"
+            document.getElementById("hide10").className = "layerdisable"
+            document.getElementById("hide11").className = "layerdisable"
+            document.getElementById("hide12").className = "layerdisable"
+            document.getElementById("hide13").className = "layerdisable"
+
+            document.getElementById("gametable").className = ""
+
+            
+            date = new Date()
+
+            timerstart = Number(date.getTime())
+        }
+
+        function gameOver(ix, iy){
+            if(gameWon){
+                to = setTimeout(function() { location.reload(); }, 5000)
+            }else{
+                to = setTimeout(function() { location.reload(); }, 2000)
+            }
+
+            for (let x = 0; x <= 17; x++) {
+                for (let y = 0; y <= 6; y++) {
+                    if(x == ix && y == iy){
+
+                    }else{
+                        if(document.getElementById(x.toString()+","+y.toString()).innerText == "🚩" && bombs[x][y] == 0){
+                            document.getElementById(x.toString()+","+y.toString()).className = "gameover"
+                        }
+                        if(document.getElementById(x.toString()+","+y.toString()).innerText == "🚩" && bombs[x][y] == 1){
+                            document.getElementById(x.toString()+","+y.toString()).className = "goodjob"
+                        }
+                        if(document.getElementById(x.toString()+","+y.toString()).innerText != "🚩" && bombs[x][y] == 1){
+                            document.getElementById(x.toString()+","+y.toString()).className = "activated"
+                            document.getElementById(x.toString()+","+y.toString()).innerText = "💣"
+                        }
+                    }
+                }
+            }
+        }
+
+        function activateTile(x, y){
+
+            x = Number(x)
+            y = Number(y)
+
+            if(bombs[x][y] == 1){
+                document.getElementById(x.toString()+","+y.toString()).innerText = "💣";
+                document.getElementById(x.toString()+","+y.toString()).className = "gameover"                
+
+                gameOver(x, y)
+
+                return;
+            }
+
+            if(neighbors[x][y] > 0){
+                document.getElementById(x.toString()+","+y.toString()).innerText = neighbors[x][y];
+            }else{
+                document.getElementById(x.toString()+","+y.toString()).innerText = " ";
+            }
+
+            document.getElementById(x.toString()+","+y.toString()).className = "activated"
+
+            activatedtile+=1
+
+            gamestate[x][y] = 1;
+
+            if(neighbors[x][y]){
+                return;
+            }
+
+            if(x>0 && y>0){
+                if(bombs[x-1][y-1] + gamestate[x-1][y-1]  == 0){
+                    activateTile(x-1,y-1)
+                }
+            }
+
+            if(y>0){
+                if(bombs[x][y-1] + gamestate[x][y-1]  == 0){
+                    activateTile(x,y-1)
+                }
+            }
+            if(x<17&&y>0){
+                try {
+                    if(bombs[x+1][y-1] + gamestate[x+1][y-1]  == 0){
+                    activateTile(x+1,y-1)
+                    }
+                }
+                catch(err) {
+                    console.log(err.message);
+                }
+            }
+//////////////////////////////////////////////////////////////////////////////////
+            if(x>0){
+                if(bombs[x-1][y] + gamestate[x-1][y] == 0){
+                    activateTile(x-1,y)
+                }
+            }
+            ////
+            if(x<17){
+                try {
+                    if(bombs[x+1][y] + gamestate[x+1][y] == 0){
+                        activateTile(x+1,y)
+                    }
+                }
+                catch(err) {
+                    console.log(err.message);
+                }
+                
+            }
+//////////////////////////////////////////////////////////////////////////////////
+            if(x>0 && y<6){
+                if(bombs[x-1][y+1] + gamestate[x-1][y+1] == 0){
+                    activateTile(x-1,y+1)
+                }
+            }
+            if(y<6){
+                if(bombs[x][y+1] + gamestate[x][y+1] == 0){
+                    activateTile(x,y+1)
+                }
+            }
+            if(x<17&&y<6){
+
+                try {
+                    if(bombs[x+1][y+1] + gamestate[x+1][y+1] == 0){
+                    activateTile(x+1,y+1)
+                    }
+                }
+                catch(err) {
+                    console.log(err.message);
+                }
+
+                
+            }
+            
+        }
+
+        function flagTile(x, y){
+
+            x = Number(x)
+            y = Number(y)
+
+            flags = 0
+
+            for (let x = 0; x <= 17; x++) {
+                for (let y = 0; y <= 6; y++) {
+                        if(document.getElementById(x.toString()+","+y.toString()).innerText == "🚩"){
+                            flags+=1
+                        }
+                }
+            }
+
+            if(flags >= gameDiff*21){
+                return;
+            }
+
+            if(gamestate[x][y] == 1){
+                return;
+            }
+
+            if(document.getElementById(x.toString()+","+y.toString()).innerText != "🚩"){
+                document.getElementById(x.toString()+","+y.toString()).innerText = "🚩";
+            }else{
+                document.getElementById(x.toString()+","+y.toString()).innerText = "";
+            }
+        }
+
+        function keydownFunction(event){
+            if(event.ctrlKey == true && gameStarted){
+                ctrlPressed = !ctrlPressed
+            }
+        }
+
+        function activateFlagsPlease(){
+            ctrlPressed = !ctrlPressed
+        }
+
+        function keyupFunction(event){
+            console.log(event.ctrlKey)
+        }
+
+        function tileClicked(btn){
+
+            x = (btn.id.toString()).split(",")[0]
+            y = (btn.id.toString()).split(",")[1]
+
+            console.log(x.toString()+" "+y.toString())
+
+            if(gameStarted == false){
+                spawnBombs(x, y)
+                gameStarted = true
+            }
+
+            if(!ctrlPressed && document.getElementById(x.toString()+","+y.toString()).innerText != "🚩"){
+                activateTile(x,y)
+            }else{
+                flagTile(x,y)
+            }
+        }
+
+        function updateCounters(){
+
+            if(gameWon){
+                return;
+            }
+
+            date = new Date()
+
+            time = Number(date.getTime())
+
+            console.log(activatedtile)
+            document.getElementById("pdone").innerHTML = Math.floor((activatedtile/(126-(21*gameDiff)))*100)
+
+            if((activatedtile/(126-(21*gameDiff))) >=  1){
+                gameWon = true
+            }
+
+            flags = 0
+
+            for (let x = 0; x <= 17; x++) {
+                for (let y = 0; y <= 6; y++) {
+                        if(document.getElementById(x.toString()+","+y.toString()).innerText == "🚩"){
+                            flags+=1
+                        }
+                }
+            }
+
+            flagsText = (Math.floor((21*gameDiff)-flags)).toString()
+
+            if(ctrlPressed){
+                document.getElementById("favai").innerHTML = "🟢 "+flagsText
+            }else{
+                document.getElementById("favai").innerHTML = "🔴 "+flagsText
+            }
+
+
+
+            if(gameWon == false){
+                timer = Number(time) - Number(timerstart)
+
+                seconds = (Math.floor((timer/1000)));
+
+                minutes = Math.floor(seconds/60)
+
+                scndstext = (seconds%60).toString()
+
+                mntstext = minutes.toString()
+
+                if(scndstext.length == 1){
+                    scndstext = "0"+scndstext
+                }
+
+                if(mntstext.length == 1){
+                    mntstext = "0"+mntstext;
+                }
+
+                document.getElementById("timer").innerHTML = mntstext+":"+scndstext
+            }else{
+                document.getElementById("timer").innerHTML = "YOU WON! "+document.getElementById("timer").innerHTML.toString()
+
+                gameOver()
+            }
+        }
+
+
+    </script>
+
+</head>
+<body  onkeydown="keydownFunction(event)" onkeyup="keyupFunction(event)">
+
+
+
+    <div id="gamescreen" class="textaligncenter">
+
+        <p id ="hide1"><br><br></p>
+        <img id ="hide2" src="TitleScreen.png" alt="Minesweeper">
+        <p id ="hide3"><br><br></p>
+        <p id="hide4">Select your difficulty</p>
+        <p id ="hide5"><br><br></p>
+
+        <button type="button" id ="hide6" class="diffbutton" onclick="difficulty(1)">New Recruit</button>
+        <p id ="hide7"><br></p>
+        <button type="button" id ="hide8" class="diffbutton" onclick="difficulty(2)">Hardened Soldier</button>
+        <p id ="hide9"><br></p>
+        <button type="button" id ="hide10" class="diffbutton" onclick="difficulty(3)">Veteran</button>
+        <p id ="hide11"><br></p>
+        <p id ="hide12">Press control or click the flag counter to toggle flag mode.</p>
+        <p id="hide13">&nbsp;</p>
+
+
+
+        <table id="gametable" class="layerdisable">
+            <tr>
+                <td class="emptyspacesml"></td>
+                <td><p class="textaligncenter">Percent Done</p></td>
+                <td class="emptyspacelrg"></td>
+                <td><p class="textaligncenter">Flags Available</p></td>
+                <td class="emptyspacesml"></td>
+            </tr>
+
+            <tr>
+                <td class="emptyspacesml"></td>
+                <td class="counter"><p class="textaligncenter" id="pdone">Percent Done</p></td>
+                <td class="emptyspacelrg" id="timer">0:00</td>
+                <td class="counter"><p class="textaligncenter" id="favai" onclick="activateFlagsPlease()">Flags Available</p></td>
+                <td class="emptyspacesml"></td>
+            </tr>
+
+            <tr>
+
+                <td colspan="5">
+                &nbsp;
+                </td>
+
+            </tr>
+
+            <tr>
+
+                <td colspan="5">
+
+                    <table id="minesweeper">
+                        <tr>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="0,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="1,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="2,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="3,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="4,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="5,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="6,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="7,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="8,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="9,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="10,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="11,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="12,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="13,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="14,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="15,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="16,0"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="17,0"></button></td>
+                        </tr>
+                        <tr>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="0,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="1,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="2,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="3,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="4,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="5,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="6,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="7,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="8,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="9,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="10,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="11,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="12,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="13,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="14,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="15,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="16,1"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="17,1"></button></td>
+                        </tr>
+                        <tr>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="0,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="1,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="2,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="3,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="4,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="5,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="6,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="7,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="8,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="9,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="10,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="11,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="12,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="13,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="14,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="15,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="16,2"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="17,2"></button></td>
+                        </tr>
+                        <tr>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="0,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="1,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="2,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="3,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="4,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="5,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="6,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="7,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="8,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="9,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="10,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="11,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="12,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="13,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="14,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="15,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="16,3"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="17,3"></button></td>
+                        </tr>
+                        <tr>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="0,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="1,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="2,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="3,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="4,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="5,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="6,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="7,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="8,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="9,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="10,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="11,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="12,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="13,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="14,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="15,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="16,4"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="17,4"></button></td>
+                        </tr>
+                        <tr>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="0,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="1,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="2,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="3,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="4,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="5,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="6,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="7,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="8,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="9,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="10,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="11,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="12,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="13,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="14,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="15,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="16,5"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="17,5"></button></td>
+                        </tr>
+                        <tr>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="0,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="1,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="2,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="3,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="4,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="5,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="6,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="7,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="8,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)"  id="9,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="10,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="11,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="12,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="13,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="14,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="15,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="16,6"></button></td>
+                            <td><button type="button" class="unactivated"  onclick="tileClicked(this)" id="17,6"></button></td>
+                        </tr>
+                    </table>
+
+                </td>
+
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        setInterval(updateCounters, 0)
+    </script>
+    
+</body>
+</html>
